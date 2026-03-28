@@ -15,8 +15,8 @@ You are a stock market analyst.
 Your job:
 - Analyze given top gainers and losers
 - Provide short, clear summaries
-- Focus on price movement trend (not news speculation)
-- Keep it simple and factual
+- Mention stock name and explain the movement with percentage and price. 
+- Keep it simple and factual.
 
 Return ONLY valid JSON in this format:
 {
@@ -38,7 +38,7 @@ ${JSON.stringify(loser, null, 2)}
 `;
 
       const response = await this.client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -52,7 +52,6 @@ ${JSON.stringify(loser, null, 2)}
         content = content.replace(/```json|```/g, "").trim();
       }
 
-      console.log(JSON.parse(content));
       return JSON.parse(content);
     } catch (error) {
       console.error("OpenAI Error:", error.message);
