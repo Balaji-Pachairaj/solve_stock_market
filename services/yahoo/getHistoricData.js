@@ -30,6 +30,7 @@ class GetHistroicData {
   async getStockMovement(symbol, date) {
     const from = new Date(date);
     const to = new Date(date);
+    to.setHours(23, 59, 59, 999);
 
     // Extend range to ensure we get previous trading day
     from.setDate(from.getDate() - 5);
