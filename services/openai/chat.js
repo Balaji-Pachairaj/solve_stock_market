@@ -62,6 +62,45 @@ ${JSON.stringify(loser, null, 2)}
       };
     }
   }
+
+  async generateEmailforStockSummary(date, data) {
+    const prompt = `
+You are generating an email report.
+
+Create a clean, professional HTML email for stock gain/loss summary.
+
+Provided data is stock market data of biggest gainer and biggest loser in the top 500 companies in india. data is from ${date} of stock market. mention data in email
+
+Order ascending if lose and descending if gain
+
+Data:
+${JSON.stringify(data, null, 2)}
+
+Return ONLY HTML.
+`;
+
+    const res = await this.client.chat.completions.create({
+      model: "gpt-4o-mini", // cheap + good
+      messages: [
+        {
+          role: "system",
+          content: `You generate email HTML.
+          
+Rules:
+- Use simple inline CSS (email safe)
+- No external CSS or JS
+- Green for gain, red for loss
+- Keep it clean and readable
+- make it interesting to read
+
+          `,
+        },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    return res.choices[0].message.content;
+  }
 }
 
 module.exports = {
