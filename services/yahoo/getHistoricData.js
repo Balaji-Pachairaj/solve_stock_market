@@ -158,7 +158,16 @@ class GetHistroicData {
       const batch = symbols.slice(i, i + BATCH_SIZE);
 
       const batchResults = await Promise.all(
-        batch.map((symbol) => this.getStockMovementIntraday(symbol, from, to)),
+        batch.map((symbol) => {
+          try {
+            const response = this.getStockMovementIntraday(symbol, from, to);
+            return response;
+          } catch (err) {
+            return {
+              symbol,
+            };
+          }
+        }),
       );
 
       results.push(...batchResults.filter(Boolean));
