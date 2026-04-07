@@ -182,7 +182,7 @@ const gainLossCronIntradayV1 = async (req, res) => {
     );
 
     if (endInstant !== "end") {
-      res.status(200).json("Called. Check the email box after 30 seconds");
+      // res.status(200).json("Called. Check the email box after 30 seconds");
       res.json({
         // generatedHtmlContent: cleanHTML(generatedHtmlContent),
         // today,
