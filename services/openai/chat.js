@@ -76,6 +76,8 @@ Order ascending if lose and descending if gain
 Data:
 ${JSON.stringify(data, null, 2)}
 
+
+Important : Mention the time of from and to in email content, from and to are UST and add +5:30 into it and display it as just indian date format for laymen to understand. mention all the gain and loss stock. Add all stock into the result of the html. if there are n gainer, should mention n gainer and same for loss
 Return ONLY HTML.
 `;
 

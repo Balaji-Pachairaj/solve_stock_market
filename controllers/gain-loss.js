@@ -103,7 +103,93 @@ const gainLossCronV1 = async (req, res) => {
   }
 };
 
+const gainLossCronIntradayV1 = async (req, res) => {
+  try {
+    const { get_summary = false, count = 10, min = 30, hour = 9 } = req.query;
+
+    const GetHistroicDataInstance = new GetHistroicData();
+
+    const nowIST = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+    );
+
+    // Set 09:15 IST
+    const from = new Date(nowIST);
+    from.setHours(9, 15, 0, 0);
+
+    // Current IST time
+    const to = new Date(nowIST);
+    to.setHours(Number(hour), Number(min), 0, 0);
+    const response =
+      await GetHistroicDataInstance.getTop500CompaniesIntradayPeriod(from, to);
+
+    const sortBasedOnPercent = response.sort(
+      (a, b) => a.percentage - b.percentage,
+    );
+
+    const getTopThreeGainers = sortBasedOnPercent.slice(
+      sortBasedOnPercent.length - count,
+      sortBasedOnPercent.length,
+    );
+    const getTopThreeLoser = sortBasedOnPercent.slice(0, count);
+
+    let summary = {};
+
+    const OPEN_AI_CHAT_INSTANCE = new OPEN_AI_CHAT();
+    if (get_summary) {
+      summary = await OPEN_AI_CHAT_INSTANCE.getSummaryTopGainerTopLoser(
+        getTopThreeGainers,
+        getTopThreeLoser,
+      );
+    }
+
+    const SendGridInstance = new SendGridSend();
+
+    function cleanHTML(html) {
+      return html
+        .replace(/```html/g, "")
+        .replace(/```/g, "")
+        .trim();
+    }
+
+    const generatedHtmlContent =
+      await OPEN_AI_CHAT_INSTANCE.generateEmailforStockSummary(nowIST, {
+        summary,
+        getTopThreeLoser,
+        getTopThreeGainers,
+        from,
+        to,
+        message:
+          "Mention the time of from and to in email content, from and to are UST and add +5:30 into it. mention all the gain and loss stock.",
+      });
+
+    const emailResponse = await SendGridInstance.sendGainLoss(
+      cleanHTML(generatedHtmlContent),
+
+      {
+        title: "Intraday Gain loss",
+      },
+    );
+
+    res.json({
+      // generatedHtmlContent: cleanHTML(generatedHtmlContent),
+      // today,
+      from,
+      to,
+      summary,
+      getTopThreeLoser,
+      getTopThreeGainers,
+      sortBasedOnPercent,
+      emailResponse,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+
 module.exports = {
   gainLossV1,
   gainLossCronV1,
+  gainLossCronIntradayV1,
 };

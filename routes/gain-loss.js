@@ -5,5 +5,9 @@ const gainLossControllers = require("../controllers/gain-loss");
 
 router.get("/gain-loss-v1/:date", gainLossControllers.gainLossV1);
 router.get("/gain-loss-cron-v1", gainLossControllers.gainLossCronV1);
+router.get(
+  "/gain-loss-intraday-cron-v1",
+  gainLossControllers.gainLossCronIntradayV1,
+);
 
 module.exports = router;

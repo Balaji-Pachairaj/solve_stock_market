@@ -8,11 +8,11 @@ class SendGridSend {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   }
 
-  async sendGainLoss(htmlContent) {
+  async sendGainLoss(htmlContent, meta) {
     const msg = {
       to: "balajipachairaj@gmail.com",
       from: "pachairajbalaji@gmail.com", // change this
-      subject: "📊 Gain/Loss Report - Daily",
+      subject: meta ? meta?.title : "📊 Gain/Loss Report - Daily",
       html: htmlContent, // raw HTML
     };
 
