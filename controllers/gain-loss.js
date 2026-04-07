@@ -105,7 +105,17 @@ const gainLossCronV1 = async (req, res) => {
 
 const gainLossCronIntradayV1 = async (req, res) => {
   try {
-    const { get_summary = false, count = 10, min = 30, hour = 9 } = req.query;
+    const {
+      get_summary = false,
+      count = 10,
+      min = 30,
+      hour = 9,
+      endInstant = "end",
+    } = req.query;
+
+    if (endInstant === "end") {
+      res.status(200).json("Called. Check the email box after 30 seconds");
+    }
 
     const GetHistroicDataInstance = new GetHistroicData();
 
@@ -171,17 +181,20 @@ const gainLossCronIntradayV1 = async (req, res) => {
       },
     );
 
-    res.json({
-      // generatedHtmlContent: cleanHTML(generatedHtmlContent),
-      // today,
-      from,
-      to,
-      summary,
-      getTopThreeLoser,
-      getTopThreeGainers,
-      sortBasedOnPercent,
-      emailResponse,
-    });
+    if (endInstant !== "end") {
+      res.status(200).json("Called. Check the email box after 30 seconds");
+      res.json({
+        // generatedHtmlContent: cleanHTML(generatedHtmlContent),
+        // today,
+        from,
+        to,
+        summary,
+        getTopThreeLoser,
+        getTopThreeGainers,
+        sortBasedOnPercent,
+        emailResponse,
+      });
+    }
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
