@@ -152,7 +152,7 @@ class GetHistroicData {
 
     const results = [];
 
-    const BATCH_SIZE = 100;
+    const BATCH_SIZE = 20;
 
     for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
       const batch = symbols.slice(i, i + BATCH_SIZE);
