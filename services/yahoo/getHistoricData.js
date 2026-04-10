@@ -152,7 +152,7 @@ class GetHistroicData {
 
     const results = [];
 
-    const BATCH_SIZE = 20;
+    const BATCH_SIZE = 100;
 
     for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
       const batch = symbols.slice(i, i + BATCH_SIZE);
@@ -217,6 +217,38 @@ class GetHistroicData {
 
     // const thatDaysMovement = await this.getStockMovement(symbol, date);
 
+    // Previous data
+    const to_prev = new Date(
+      new Date(from).setDate(new Date(from).getDate() - 1),
+    );
+    to_prev.setHours(23, 59, 59, 999);
+    const from_prev = new Date(
+      new Date(from).setDate(new Date(from).getDate() - 5),
+    );
+    const prevData = await yahooFinance.historical(symbol, {
+      period1: from_prev,
+      period2: new Date(to_prev),
+      interval: "1d",
+    });
+
+    console.log(to_prev, from_prev);
+
+    let gapPercent = 0;
+    let gapDifference = 0;
+    let totalMovement = 0;
+    let totalPercentage = 0;
+    if (!prevData || prevData.length < 2) {
+    } else {
+      const prevClose = prevData[prevData.length - 1].close;
+
+      gapDifference = first.open - prevClose;
+
+      gapPercent = (gapDifference / prevClose) * 100;
+
+      totalMovement = last.close - prevClose;
+      totalPercentage = ((totalMovement / prevClose) * 100).toFixed(2);
+    }
+
     return {
       symbol,
       name: quote.longName,
@@ -226,6 +258,14 @@ class GetHistroicData {
       close: last.close,
       // percentageInThatDay: thatDaysMovement.percentage,
       // closeList: result.map((item) => item.close),
+
+      // 🔥 GAP DATA
+      gapDifference: gapDifference.toFixed(2),
+      gapPercent: gapPercent.toFixed(2),
+      gapType: gapDifference > 0 ? "GAP_UP" : "GAP_DOWN",
+      prevData,
+      totalMovement,
+      totalPercentage,
     };
   }
 }

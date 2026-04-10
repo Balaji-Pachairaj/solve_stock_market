@@ -170,8 +170,9 @@ const gainLossCronIntradayV1 = async (req, res) => {
         from,
         to,
         message:
-          "Mention the time of from and to in email content, from and to are UST and add +5:30 into it. mention all the gain and loss stock.",
+          "Display the Gap Up and Gap Down, and percentage of gap percentage",
       });
+      
 
     const emailResponse = await SendGridInstance.sendGainLoss(
       cleanHTML(generatedHtmlContent),
@@ -180,6 +181,9 @@ const gainLossCronIntradayV1 = async (req, res) => {
         title: "Intraday Gain loss",
       },
     );
+
+    // const generatedHtmlContent = null;
+    // const emailResponse = null
 
     if (endInstant !== "end") {
       // res.status(200).json("Called. Check the email box after 30 seconds");
