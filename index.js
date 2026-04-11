@@ -3,10 +3,16 @@ dotenv.config();
 const express = require("express");
 const app = express();
 
+const cors = require("cors");
+
+
 const API_ROUTES = require("./routes/index");
 const connectDB = require("./config/Mongodb");
 
 app.use(express.json());
+app.use(cors({
+  origin: "*", // allow all (for testing)
+}));
 
 app.use("/", API_ROUTES);
 

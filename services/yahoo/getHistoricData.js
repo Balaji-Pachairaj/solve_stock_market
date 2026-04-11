@@ -184,6 +184,8 @@ class GetHistroicData {
     const marketOpen = new Date(from);
     const firstHourEnd = new Date(to);
 
+        console.log(marketOpen, firstHourEnd);
+
     const quote = await yahooFinance.quote(symbol);
 
     const chart = await yahooFinance.chart(symbol, {
@@ -269,6 +271,131 @@ class GetHistroicData {
     };
   }
 }
+
+class GetIntradayData {
+  async getTop500(from, to) {
+    const ProcessConfigInstance = new ProcessConfig();
+
+    const symbols = ProcessConfigInstance.getSymbolsTop500Companies();
+
+    const results = [];
+
+    const BATCH_SIZE = 100;
+
+    for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
+      const batch = symbols.slice(i, i + BATCH_SIZE);
+
+      const batchResults = await Promise.all(
+        batch.map((symbol) => {
+          try {
+            const response = this.getStock(symbol, from, to);
+            return response;
+          } catch (err) {
+            return {
+              symbol,
+            };
+          }
+        }),
+      );
+
+      results.push(...batchResults.filter(Boolean));
+
+      await new Promise((res) => setTimeout(res, 1000)); // avoid rate limit
+    }
+
+    return results;
+  }
+
+  async getStock(symbol, from, to) {
+    const yahooFinance = new YahooFinance();
+
+    // ─── Fetch Quote & Chart Data ────────────────────────────────────────────
+    const marketOpenTime = new Date(from);
+    const marketCloseTime = new Date(to);
+
+    console.log(marketOpenTime, marketCloseTime);
+
+    const stockQuote = await yahooFinance.quote(symbol);
+
+    const intradayChart = await yahooFinance.chart(symbol, {
+      period1: Math.floor(marketOpenTime.getTime() / 1000),
+      period2: Math.floor(marketCloseTime.getTime() / 1000),
+      interval: "5m",
+    });
+
+    // ─── Normalize Chart → OHLCV Format ─────────────────────────────────────
+    const intradayCandles = (intradayChart?.quotes || [])
+      .filter((candle) => candle.open != null && candle.close != null)
+      .map((candle) => ({
+        date: new Date(candle.date),
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+        volume: candle.volume,
+      }));
+
+    if (!intradayCandles || intradayCandles.length === 0) return null;
+
+    // ─── Intraday Movement ───────────────────────────────────────────────────
+    const openingCandle = intradayCandles[0];
+    const closingCandle = intradayCandles[intradayCandles.length - 1];
+
+    if (!openingCandle || !closingCandle) return null;
+
+    const intradayMovement = closingCandle.close - openingCandle.open;
+    const intradayPercentage = (intradayMovement / openingCandle.open) * 100;
+
+    // ─── Fetch Previous Trading Days (for Gap Calculation) ───────────────────
+    const prevWindowEnd = new Date(from);
+    prevWindowEnd.setDate(prevWindowEnd.getDate() - 1);
+    prevWindowEnd.setHours(23, 59, 59, 999);
+
+    const prevWindowStart = new Date(from);
+    prevWindowStart.setDate(prevWindowStart.getDate() - 5);
+
+    const previousDailyCandles = await yahooFinance.historical(symbol, {
+      period1: prevWindowStart,
+      period2: new Date(prevWindowEnd),
+      interval: "1d",
+    });
+
+    // ─── Gap Calculation ─────────────────────────────────────────────────────
+    let gapDifference = 0;
+    let gapPercent = 0;
+    let totalMovement = 0;
+    let totalPercentage = 0;
+
+    if (previousDailyCandles && previousDailyCandles.length >= 2) {
+      const previousClose =
+        previousDailyCandles[previousDailyCandles.length - 1].close;
+
+      gapDifference = openingCandle.open - previousClose;
+      gapPercent = (gapDifference / previousClose) * 100;
+
+      totalMovement = closingCandle.close - previousClose;
+      totalPercentage = ((totalMovement / previousClose) * 100).toFixed(2);
+    }
+
+    // ─── Return Structured Result ─────────────────────────────────────────────
+    return {
+      symbol,
+      name: stockQuote.longName,
+      open: openingCandle.open,
+      close: closingCandle.close,
+      movement: intradayMovement.toFixed(2),
+      percentage: intradayPercentage.toFixed(2),
+      gapDifference: gapDifference.toFixed(2),
+      gapPercent: gapPercent.toFixed(2),
+      gapType: gapDifference > 0 ? "GAP_UP" : "GAP_DOWN",
+      // previousDailyCandles,
+      totalMovement,
+      totalPercentage,
+      intradayCandles
+    };
+  }
+}
 module.exports = {
   GetHistroicData,
+  GetIntradayData,
 };
