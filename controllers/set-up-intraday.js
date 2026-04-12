@@ -24,6 +24,8 @@ const setIntraday = async (req, res) => {
         body.minute,
       );
 
+      console.log(intradayData);
+
       const saveInDB = new IntradayMaster({
         minute: body.minute,
         hour: body.hour,
@@ -43,7 +45,7 @@ const setIntraday = async (req, res) => {
     }
   } catch (er) {
     console.log(er);
-    res.status(400).json("Failed");
+    res.status(400).json(er);
   }
 };
 

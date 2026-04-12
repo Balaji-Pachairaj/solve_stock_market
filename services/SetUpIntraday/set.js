@@ -42,11 +42,15 @@ const setIntradayData = async (dateOfFetch, hour, min) => {
 
     const data = await GetIntradayDataInstance.getTop500(from, to);
 
+    console.log(data.length);
+
     let sort = data.sort((a, b) => b.percentage - a.percentage);
 
     sort = sort.map((item, index) => {
       return { ...item, rank: index + 1 };
     });
+
+    console.log(sort.length);
 
     return sort;
   } catch (err) {
