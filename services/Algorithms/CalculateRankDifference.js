@@ -23,8 +23,6 @@ class CalculateRankDifference {
       rankObject.push(current_rank);
     }
 
-    console.log("rankObject = ", rankObject);
-
     const return_data = [];
     return_data?.push(intraday[0]);
     for (let i = 1; i < intraday.length; i++) {
